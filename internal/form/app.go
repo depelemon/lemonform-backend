@@ -16,4 +16,9 @@ func App(app fiber.Router, db *gorm.DB) {
 	r.Post("/", ctr.Create)
 	r.Put("/:id", ctr.Update)
 	r.Delete("/:id", ctr.Delete)
+
+	// Question CRUD (nested under forms)
+	r.Post("/:id/questions", ctr.CreateQuestion)
+	r.Put("/:id/questions/:qid", ctr.UpdateQuestion)
+	r.Delete("/:id/questions/:qid", ctr.DeleteQuestion)
 }

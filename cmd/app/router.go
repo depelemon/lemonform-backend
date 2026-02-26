@@ -10,6 +10,7 @@ import (
 
 	"github.com/crlnravel/go-fiber-template/internal/auth"
 	"github.com/crlnravel/go-fiber-template/internal/form"
+	"github.com/crlnravel/go-fiber-template/internal/response"
 	"github.com/crlnravel/go-fiber-template/internal/test"
 )
 
@@ -45,6 +46,7 @@ func NewApp(cfg *appConfig) *fiber.App {
 
 	// Register route modules
 	auth.App(v1, cfg.db)
+	response.App(v1, cfg.db) // must be before form to avoid JWT on public submit
 	form.App(v1, cfg.db)
 	test.App(v1, cfg.db)
 

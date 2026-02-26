@@ -21,7 +21,7 @@ func main() {
 	database.ConnectPostgres()
 
 	// Auto-migrate models
-	if err := database.DB.AutoMigrate(&models.User{}, &models.Form{}, &models.Question{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.User{}, &models.Form{}, &models.Question{}, &models.Response{}, &models.Answer{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
