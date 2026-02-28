@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/crlnravel/go-fiber-template/internal/auth"
+	"github.com/crlnravel/go-fiber-template/internal/config"
 	"github.com/crlnravel/go-fiber-template/internal/form"
 	"github.com/crlnravel/go-fiber-template/internal/response"
 	"github.com/crlnravel/go-fiber-template/internal/test"
@@ -28,7 +29,7 @@ func NewApp(cfg *appConfig) *fiber.App {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000",
+		AllowOrigins:     config.GetEnv("CORS_ORIGINS", "http://localhost:3000"),
 		AllowHeaders:     "*",
 		AllowMethods:     "*",
 		AllowCredentials: true,
