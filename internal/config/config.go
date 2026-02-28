@@ -15,10 +15,7 @@ const (
 )
 
 func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		panic("env is not loaded properly")
-	}
+	_ = godotenv.Load()
 }
 
 func GetEnv(key, fallback string) string {
