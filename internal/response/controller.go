@@ -15,6 +15,7 @@ func itoa(id uint) string {
 type Controller interface {
 	Submit(c *fiber.Ctx) error
 	List(c *fiber.Ctx) error
+	GetPublic(c *fiber.Ctx) error
 }
 
 type controller struct {
@@ -206,5 +207,46 @@ func (ctr *controller) List(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"ok":        true,
 		"responses": responses,
+	})
+}
+
+// GetPublic godoc
+// @Summary      Get a form publicly
+// @Description  Get a form with its questions (no auth required). Only returns open forms.
+// @Tags         Responses
+// @Produce      json
+// @Param        id  path  int  true  "Form ID"
+// @Success      200  {object} map[string]interface{}
+// @Failure      404  {object} map[string]interface{}
+// @Router       /api/v1/forms/{id}/public [get]
+func (ctr *controller) GetPublic(c *fiber.Ctx) error {
+	formID, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"ok":    false,
+			"error": "invalid form id",
+		})
+	}
+
+	var form models.Form
+	if err := ctr.db.Preload("Questions", func(db *gorm.DB) *gorm.DB {
+		return db.Order("\"order\" ASC")
+	}).First(&form, formID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"ok":    false,
+			"error": "form not found",
+		})
+	}
+
+	if form.Status != "open" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"ok":    false,
+			"error": "this form is closed and no longer accepts responses",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"ok":   true,
+		"form": form,
 	})
 }

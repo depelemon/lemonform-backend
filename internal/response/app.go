@@ -9,7 +9,8 @@ import (
 func App(app fiber.Router, db *gorm.DB) {
 	ctr := NewController(db)
 
-	// Public — anyone can submit a response to an open form
+	// Public — anyone can view an open form and submit a response
+	app.Get("/forms/:id/public", ctr.GetPublic)
 	app.Post("/forms/:id/responses", ctr.Submit)
 
 	// Protected — only the form owner can view responses
