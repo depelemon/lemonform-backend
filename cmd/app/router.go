@@ -8,6 +8,8 @@ import (
 	"github.com/gofiber/swagger"
 	"gorm.io/gorm"
 
+	_ "github.com/crlnravel/go-fiber-template/docs"
+
 	"github.com/crlnravel/go-fiber-template/internal/auth"
 	"github.com/crlnravel/go-fiber-template/internal/config"
 	"github.com/crlnravel/go-fiber-template/internal/form"

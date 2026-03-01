@@ -1,14 +1,537 @@
 basePath: /
-host: minecart.compfest.id
+definitions:
+  auth.authResponse:
+    properties:
+      ok:
+        type: boolean
+      token:
+        type: string
+    type: object
+  auth.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.registerRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  common.ErrorResponse:
+    properties:
+      error:
+        type: string
+      ok:
+        example: false
+        type: boolean
+    type: object
+  common.GeneralSuccessResponse:
+    properties:
+      message:
+        type: string
+      ok:
+        example: true
+        type: boolean
+    type: object
+  form.createFormRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  form.createQuestionRequest:
+    properties:
+      label:
+        type: string
+      options:
+        description: JSON-encoded options (for non-short_answer types)
+        type: string
+      order:
+        type: integer
+      required:
+        description: default true
+        type: boolean
+      type:
+        description: short_answer, radio, checkbox, dropdown
+        type: string
+    type: object
+  form.updateFormRequest:
+    properties:
+      description:
+        type: string
+      status:
+        description: '"open" or "closed"'
+        type: string
+      title:
+        type: string
+    type: object
+  form.updateQuestionRequest:
+    properties:
+      label:
+        type: string
+      options:
+        type: string
+      order:
+        type: integer
+      required:
+        type: boolean
+      type:
+        type: string
+    type: object
+  response.answerPayload:
+    properties:
+      question_id:
+        type: integer
+      value:
+        type: string
+    type: object
+  response.submitRequest:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/response.answerPayload'
+        type: array
+    type: object
+host: localhost:8080
 info:
-  contact:
-    name: API Maintainer (Tim DevOps COMPFEST 17)
-  description: API Endpoints for COMPFEST Mailer System. Built with Golang, Fiber,
-    and Love <3
+  contact: {}
+  description: API Endpoints for LemonForm — a form builder application.
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: COMPFEST 17 Mailer "Minecart" API
+    name: MIT
+  title: LemonForm API
   version: "1.0"
-paths: {}
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with email and password, receive a JWT.
+      parameters:
+      - description: Login payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      summary: Login
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new account with email and password.
+      parameters:
+      - description: Register payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "409":
+          description: Conflict (email taken)
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /api/v1/forms:
+    get:
+      description: Get all forms owned by the authenticated user. Supports search,
+        status filter, date range, sorting, and pagination.
+      parameters:
+      - description: Search by title (case-insensitive)
+        in: query
+        name: search
+        type: string
+      - description: 'Filter by status: open or closed'
+        in: query
+        name: status
+        type: string
+      - description: Filter forms created after this date (RFC3339, e.g. 2025-01-01T00:00:00Z)
+        in: query
+        name: created_after
+        type: string
+      - description: Filter forms created before this date (RFC3339)
+        in: query
+        name: created_before
+        type: string
+      - description: 'Field to sort by: created_at (default) or title'
+        in: query
+        name: sort_by
+        type: string
+      - description: 'Sort direction: asc or desc (default desc)'
+        in: query
+        name: sort
+        type: string
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List forms
+      tags:
+      - Forms
+    post:
+      consumes:
+      - application/json
+      description: Create a new form (defaults to status "open").
+      parameters:
+      - description: Form payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/form.createFormRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a form
+      tags:
+      - Forms
+  /api/v1/forms/{id}:
+    delete:
+      description: Delete a form together with its questions and responses.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a form
+      tags:
+      - Forms
+    get:
+      description: Get a single form with its questions.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get form detail
+      tags:
+      - Forms
+    put:
+      consumes:
+      - application/json
+      description: Update a form's title, description, or status (open/closed).
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Form payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/form.updateFormRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a form
+      tags:
+      - Forms
+  /api/v1/forms/{id}/public:
+    get:
+      description: Get a form with its questions (no auth required). Only returns
+        open forms.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a form publicly
+      tags:
+      - Responses
+  /api/v1/forms/{id}/questions:
+    post:
+      consumes:
+      - application/json
+      description: 'Create a new question. Type must be one of: short_answer, multiple_choice,
+        checkbox, dropdown.'
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Question payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/form.createQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add a question to a form
+      tags:
+      - Questions
+  /api/v1/forms/{id}/questions/{qid}:
+    delete:
+      description: Remove a question from a form.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Question ID
+        in: path
+        name: qid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a question
+      tags:
+      - Questions
+    put:
+      consumes:
+      - application/json
+      description: Update a question's label, type, options, or order.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Question ID
+        in: path
+        name: qid
+        required: true
+        type: integer
+      - description: Question payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/form.updateQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a question
+      tags:
+      - Questions
+  /api/v1/forms/{id}/responses:
+    get:
+      description: Get all responses for a form. Only the form owner can access this.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List responses
+      tags:
+      - Responses
+    post:
+      consumes:
+      - application/json
+      description: Submit answers to a form. The form must be open (status = "open").
+        No authentication required.
+      parameters:
+      - description: Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Response payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/response.submitRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Submit a response
+      tags:
+      - Responses
+  /api/v1/test/:
+    get:
+      description: Get test message.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.GeneralSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "401":
+          description: Unauthenticated
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      summary: Get Test Message
+      tags:
+      - Test
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
