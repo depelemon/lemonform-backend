@@ -176,7 +176,7 @@ func (ctr *controller) Get(c *fiber.Ctx) error {
 	}).Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 
@@ -265,7 +265,7 @@ func (ctr *controller) Update(c *fiber.Ctx) error {
 	if err := ctr.db.Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 
@@ -337,7 +337,7 @@ func (ctr *controller) Delete(c *fiber.Ctx) error {
 	if err := ctr.db.Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 
@@ -391,7 +391,7 @@ func (ctr *controller) CreateQuestion(c *fiber.Ctx) error {
 	if err := ctr.db.Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 
@@ -492,7 +492,7 @@ func (ctr *controller) UpdateQuestion(c *fiber.Ctx) error {
 	if err := ctr.db.Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 
@@ -590,7 +590,7 @@ func (ctr *controller) DeleteQuestion(c *fiber.Ctx) error {
 	if err := ctr.db.Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 

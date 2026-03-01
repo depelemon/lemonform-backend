@@ -66,7 +66,7 @@ func (ctr *controller) Submit(c *fiber.Ctx) error {
 	if err := ctr.db.First(&form, formID).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist",
 		})
 	}
 
@@ -192,7 +192,7 @@ func (ctr *controller) List(c *fiber.Ctx) error {
 	if err := ctr.db.Where("id = ? AND owner_id = ?", formID, userID).First(&form).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist or you do not have permission to access it",
 		})
 	}
 
@@ -234,7 +234,7 @@ func (ctr *controller) GetPublic(c *fiber.Ctx) error {
 	}).First(&form, formID).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"ok":    false,
-			"error": "form not found",
+			"error": "form does not exist",
 		})
 	}
 
